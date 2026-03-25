@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#Why do I have to put a comment on each script's second line
 while true
 do
 	echo "To inifnity and beyond"
