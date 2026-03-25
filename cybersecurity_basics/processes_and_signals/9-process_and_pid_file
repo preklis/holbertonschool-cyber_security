@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 # This script kills the 4-to_infinity_and_beyond process
+echo $$> /tmp/myscript.pid
+delfunc()
+{
+	rm -f /tmp/myscript.pid
+}
 func1()
 {
 	echo "I hate the kill"
+	delfunc
 	exit
 }
 
@@ -10,6 +16,7 @@ func1()
 func2()
 {
 	echo "Y U no love me?!"
+	delfunc
 	exit
 }
 trap func1 SIGTERM
