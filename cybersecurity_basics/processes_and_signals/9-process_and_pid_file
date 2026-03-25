@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# This script kills the 4-to_infinity_and_beyond process
+func1()
+{
+	echo "I hate the kill"
+	exit
+}
+
+
+func2()
+{
+	echo "Y U no love me?!"
+	exit
+}
+trap func1 SIGTERM
+
+trap func2 SIGINT
+
+while true
+do
+	echo "To infinity and beyond" 2>/dev/null
+done
