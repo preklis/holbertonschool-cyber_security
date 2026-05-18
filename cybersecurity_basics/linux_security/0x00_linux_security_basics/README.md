@@ -1,223 +1,276 @@
-0. What secrets hold
-Write a bash script that shows you the last 5 logins session for users with their corresponding dates and times.
-You should run your code as privileged user. root or sudoers.
-Depending on your machine, the output could change.
+# 🛡️ Linux Security Basics - 0x00 Linux Security Fundamentals
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./0-login.sh
-[sudo] password for maroua: 
-root     tty1                          Thu Oct 12 10:08:24 2023   still logged in
-root     ttyS0                         Thu Oct 12 10:08:23 2023   still logged in
-reboot   system boot  6.5.0-kali1-clou Thu Oct 12 10:08:10 2023   still running
-root     tty1                          Tue Oct 10 15:08:21 2023 - down                      (19:26)
-root     ttyS0                         Tue Oct 10 15:08:21 2023 - down                      (19:26)
+## 📋 Project Overview
 
-wtmp begins Mon Sep 25 16:29:08 2023 
+This project focuses on fundamental Linux security operations and monitoring techniques. Students will learn essential security tools and commands for system administration, network monitoring, firewall configuration, and security auditing on Linux systems.
 
-----------------------------------------------------------------------------------------
+**Project**: `0x00_linux_security_basics`  
+**Environment**: Linux/Kali Linux  
+**Repository**: `holbertonschool-cyber_security`
 
-1. Shows your Linux connections, not your social status!
-Write a bash script that display a list of network socket connections
+## 🎯 Learning Objectives
 
-1 You should run your code as privileged user root or sudoers.
-2 You should Show all sockets, including listening and non-listening sockets.
-3 You should Display numerical addresses (IP addresses and port numbers).
-4 You should Limit the output to TCP sockets.
-5 You should Display the process information associated with each socket.
-The task should use iproute2 version 5.x
+After completing this project, you will be able to:
 
-Depending on your machine, the output could change.
+- 🔍 Monitor user login sessions and activity
+- 🌐 Analyze active network connections and processes
+- 🔥 Configure firewall rules with UFW and iptables
+- 🚪 Audit network services and open ports
+- 📊 Perform system security audits
+- 📡 Capture and analyze network traffic
+- 🎯 Conduct basic network reconnaissance
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./1-active-connections.sh
-State   Recv-Q   Send-Q     Local Address:Port   Peer Address:Port   Process                                              
-LISTEN  0        128                                          0.0.0.0:22                                           0.0.0.0:*                                                                          
-LISTEN  0        100                                          0.0.0.0:5000                                         0.0.0.0:*                                                                          
-LISTEN  0        5                                          127.0.0.1:5901                                         0.0.0.0:*                      users:(("Xtigervnc",pid=923,fd=9))                  
-ESTAB   0        0                                          127.0.0.1:5901                                       127.0.0.1:36828                  users:(("Xtigervnc",pid=923,fd=38))                 
-ESTAB   0        0                                          127.0.0.1:36828                                      127.0.0.1:5901                                                                       
-ESTAB   0        0                                         6.19.156.8:5000                                      6.19.0.167:60812                                                                      
-LISTEN  0        128                                             [::]:22                                              [::]:*                                                                          
-LISTEN  0        5                                              [::1]:5901                                            [::]:*                      users:(("Xtigervnc",pid=923,fd=10))
+## 📁 Project Structure
 
-----------------------------------------------------------------------------------------
-  
-2. Firewall rules: Your network's first line of defense!
-Write a bash script that allow only incoming connections with the TCP protocol through port 80.
-You should run your code as privileged user. root or sudoers.
-Depending on your machine, the output could change.
+| Task | Script | Description | Key Tool |
+|------|--------|-------------|----------|
+| **0** | `0-login.sh` | Monitor user login sessions | `last` |
+| **1** | `1-active-connections.sh` | Display active TCP connections | `ss` |
+| **2** | `2-incoming_connections.sh` | Configure UFW firewall policy | `ufw` |
+| **3** | `3-firewall_rules.sh` | List iptables security rules | `iptables` |
+| **4** | `4-network_services.sh` | Audit network services and ports | `netstat` |
+| **5** | `5-audit_system.sh` | Perform comprehensive system audit | `lynis` |
+| **6** | `6-capture_analyze.sh` | Capture network packets | `tcpdump` |
+| **7** | `7-scan.sh` | Network host discovery and scanning | `nmap` |
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./2-incoming_connections.sh
-[sudo] password for maroua:
-Rules updated
-Rules updated (v6)
+## 🔧 Scripts Documentation
 
-----------------------------------------------------------------------------------------
+### 0️⃣ Login Session Monitor (`0-login.sh`)
+```bash
+#!/bin/bash
+sudo last -F -5  # List last 5 logins session for users with their corresponding dates and times.
+```
 
-3. Securing your network, one rule at a time!
-Write a bash script that list all the rules in the security table of the firewall.
-You should run your code as privileged user. root or sudoers.
-You should use the verbose mode.
-Depending on your machine, the output could change.
+**Code Explanation**:
+- `sudo last` : Shows user login history from system logs
+- `-F` : Full format with complete timestamps
+- `-5` : Display only the last 5 login sessions
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./3-firewall_rules.sh
-[sudo] password for maroua: 
-Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
+**Security Context**: Track user access patterns, detect unauthorized logins, forensic analysis
 
+### 1️⃣ Active Connections Monitor (`1-active-connections.sh`)
+```bash
+#!/bin/bash
+sudo ss -antp  # List all active connections with process information
+```
 
-Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
+**Code Explanation**:
+- `ss` : Modern replacement for netstat (socket statistics)
+- `-a` : All connections (listening + established)
+- `-n` : Numeric format (no DNS resolution)
+- `-t` : TCP connections only
+- `-p` : Show process using socket
 
+**Security Context**: Detect suspicious connections, identify running services, network forensics
 
+### 2️⃣ UFW Firewall Configuration (`2-incoming_connections.sh`)
+```bash
+#!/bin/bash
+sudo ufw --force reset > /dev/null 2>&1 && sudo ufw default deny incoming > /dev/null 2>&1 && sudo ufw default allow outgoing > /dev/null 2>&1 && sudo ufw allow 80/tcp && sudo ufw --force enable > /dev/null 2>&1
+```
 
-Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination
+**Code Explanation**:
+- `ufw --force reset` : Reset firewall to default state
+- `ufw default deny incoming` : Block all incoming traffic by default
+- `ufw default allow outgoing` : Allow all outgoing traffic
+- `ufw allow 80/tcp` : Specifically allow HTTP traffic
+- `ufw --force enable` : Activate firewall without prompts
 
-----------------------------------------------------------------------------------------
+**Security Context**: Implement defense-in-depth, minimize attack surface, secure server configuration
 
+### 3️⃣ Firewall Rules Audit (`3-firewall_rules.sh`)
+```bash
+#!/bin/bash
+sudo iptables -t security -L -n -v  # List all rules in security table with verbose output
+```
 
-4. See what's talking, and who's listening!
-Write a bash script that list services, their current state, and their corresponding ports.
+**Code Explanation**:
+- `iptables` : Linux kernel firewall administration tool
+- `-t security` : Target the security table (SELinux/AppArmor controls)
+- `-L` : List all rules in the table
+- `-n` : Numeric output (no hostname resolution)
+- `-v` : Verbose mode with packet/byte counters
 
-1 You should run your code as privileged user. root or sudoers.
-2 You should show the PID and name of the program to which each socket belongs.
-3 You should show numerical addresses (IP addresses and port numbers).
-4 You should display listening sockets.
-5 You should display TCP sockets.
-6 You should display UDP sockets.
-Depending on your machine, the output could change.
+**Security Context**: Security policy auditing, MAC (Mandatory Access Control) verification
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./4-network_services.sh
-[sudo] password for maroua: 
-Active Internet connections (only servers)
-Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+### 4️⃣ Network Services Audit (`4-network_services.sh`)
+```bash
+#!/bin/bash
+sudo netstat -tunlp  # List services, their current state, and their corresponding ports
+```
 
-tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      881/sshd: /usr/sbin 
-tcp        0      0 0.0.0.0:5000            0.0.0.0:*               LISTEN      913/python3
+**Code Explanation**:
+- `netstat` : Network statistics and connection information
+- `-t` : TCP connections
+- `-u` : UDP connections
+- `-n` : Numeric addresses (no DNS resolution)
+- `-l` : Listening ports only
+- `-p` : Process ID and name
 
-tcp        0      0 127.0.0.1:5901          0.0.0.0:*               LISTEN      923/Xtigervnc
+**Security Context**: Service enumeration, identify unnecessary services, attack surface assessment
 
-tcp6       0      0 :::22                   :::*                    LISTEN      881/sshd: /usr/sbin 
-tcp6       0      0 ::1:5901                :::*                    LISTEN      923/Xtigervnc
+### 5️⃣ System Security Audit (`5-audit_system.sh`)
+```bash
+#!/bin/bash
+sudo lynis audit system  # List all audit rules
+```
 
-udp        0      0 0.0.0.0:68              0.0.0.0:*                           525/dhclient
+**Code Explanation**:
+- `lynis` : Comprehensive security auditing tool
+- `audit system` : Perform full system security assessment
+- Checks: hardening, compliance, vulnerabilities, configuration
 
-udp6       0      0 fe80::85e:34ff:fea6:546 :::*                                622/dhclient
+**Security Context**: Security baseline assessment, compliance checking, vulnerability identification
 
-----------------------------------------------------------------------------------------
+### 6️⃣ Network Packet Capture (`6-capture_analyze.sh`)
+```bash
+#!/bin/bash
+sudo tcpdump -c 5 -i any  # Capture 5 packets and display verbose output
+```
 
-5. Where it talks, we all listen!
-Write a bash script that initiate a system audit for scanning the machine.
-You should run your code as privileged user. `root` or `sudoers`.
-Depending on your machine, the output could change.
+**Code Explanation**:
+- `tcpdump` : Command-line packet analyzer
+- `-c 5` : Capture exactly 5 packets then stop
+- `-i any` : Listen on all available interfaces
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./5-audit_system.sh
-[sudo] password for maroua: 
+**Security Context**: Network forensics, traffic analysis, intrusion detection
 
-[ Lynis 3.0.8 ]
+### 7️⃣ Network Scanner (`7-scan.sh`)
+```bash
+#!/bin/bash
+sudo nmap "$1"
+```
 
-################################################################################
-  Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
-  welcome to redistribute it under the terms of the GNU General Public License.
-  See the LICENSE file for details about using this software.
+**Code Explanation**:
+- `nmap` : Network exploration and security scanning tool
+- `"$1"` : Target IP address or hostname (first argument)
+- Default scan: TCP SYN scan of top 1000 ports
 
-  2007-2021, CISOfy - https://cisofy.com/lynis/
-  Enterprise support available (compliance, plugins, interface and tools)
-################################################################################
+**Security Context**: Network reconnaissance, service discovery, vulnerability assessment
 
+## 🚨 Security Considerations
 
-[+] Initializing program
-------------------------------------
-  - Detecting OS...                                           [ DONE ]
-  - Checking profiles...                                      [ DONE ]
+### 🔐 **Privileged Operations**
+- All scripts require `sudo` privileges for system-level access
+- Monitor execution logs for security compliance
+- Use principle of least privilege in production
 
-  ---------------------------------------------------
-  Program version:           3.0.8
-  Operating system:          Linux
-  Operating system name:     Kali Linux
-  Operating system version:  Rolling release
-  Kernel version:            6.5.0
-  Hardware platform:         x86_64
-  Hostname:                  kali
-  ---------------------------------------------------
-  Profiles:                  /etc/lynis/default.prf
-  Log file:                  /var/log/lynis.log
-  Report file:               /var/log/lynis-report.dat
-  Report version:            1.0
-  Plugin directory:          /etc/lynis/plugins
-  ---------------------------------------------------
-  Auditor:                   [Not Specified]
-  Language:                  en
-  Test category:             all
-  Test group:                all
+### 🌐 **Network Security**
+- UFW provides stateful firewall protection
+- Default deny policy minimizes attack surface
+- Regular audit of firewall rules essential
 
-...
+### 📊 **Monitoring Best Practices**
+- Regular login session monitoring for anomaly detection
+- Continuous network connection monitoring
+- Automated security auditing with tools like Lynis
 
-================================================================================
+### ⚠️ **Ethical Usage**
+- Network scanning tools (nmap) should only be used on authorized systems
+- Packet capture requires proper authorization and legal compliance
+- Respect privacy and legal boundaries in security testing
 
-  Lynis 3.0.8
+## 🛠️ Installation & Usage
 
-  Auditing, system hardening, and compliance for UNIX-based systems
-  (Linux, macOS, BSD, and others)
+1. **Ensure required tools are installed**:
+   ```bash
+   # Install security tools (on Debian/Ubuntu)
+   sudo apt update
+   sudo apt install ufw iptables-persistent netstat-nat lynis tcpdump nmap
+   ```
 
-  2007-2021, CISOfy - https://cisofy.com/lynis/
-  Enterprise support available (compliance, plugins, interface and tools)
+2. **Make scripts executable**:
+   ```bash
+   chmod +x *.sh
+   ```
 
-================================================================================
+3. **Run individual scripts**:
+   ```bash
+   # Monitor logins
+   ./0-login.sh
+   
+   # Check active connections
+   ./1-active-connections.sh
+   
+   # Configure firewall
+   ./2-incoming_connections.sh
+   
+   # Audit firewall rules
+   ./3-firewall_rules.sh
+   
+   # Check network services
+   ./4-network_services.sh
+   
+   # System security audit
+   ./5-audit_system.sh
+   
+   # Capture network packets
+   ./6-capture_analyze.sh
+   
+   # Scan target host
+   ./7-scan.sh 192.168.1.1
+   ```
 
-  [TIP]: Enhance Lynis audits by adding your settings to custom.prf (see /etc/lynis/default.prf for all settings)
-  
-----------------------------------------------------------------------------------------
+## 🧪 Testing Examples
 
-6. Your eyes and ears on the network!
-Write a bash script that capture and analyze network traffic going through the system.
-You should run your code as privileged user. root or sudoers.
-You should limit the number of packets captured to 5
-Depending on your machine, the output could change.
+```bash
+# Check last 5 user logins
+./0-login.sh
+# Output: Login history with timestamps
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./6-captureanalyze.sh
-[sudo] password for maroua: 
-tcpdump: data link type LINUXSLL2
-tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
-listening on any, link-type LINUX_SLL2 (Linux cooked v2), snapshot length 262144 bytes
-09:10:03.397281 eth0  In  IP ip-6-19-0-167.eu-central-1.compute.internal.36014 > ip-6-19-156-8.eu-central-1.compute.internal.5000: Flags [P.], seq 3466652703:3466652721, ack 3521647673, win 24559, options [nop,nop,TS val 17390194 ecr 4276499227], length 18
-09:10:03.397474 lo    In  IP localhost.34870 > localhost.5901: Flags [P.], seq 4075666532:4075666544, ack 2019255620, win 24573, options [nop,nop,TS val 1065549505 ecr 1065549431], length 12
-09:10:03.398937 eth0  In  IP ip-6-19-0-167.eu-central-1.compute.internal.36014 > ip-6-19-156-8.eu-central-1.compute.internal.5000: Flags [P.], seq 18:66, ack 1, win 24559, options [nop,nop,TS val 17390195 ecr 4276499227], length 48
-09:10:03.398990 eth0  In  IP ip-6-19-0-167.eu-central-1.compute.internal.36014 > ip-6-19-156-8.eu-central-1.compute.internal.5000: Flags [P.], seq 66:82, ack 1, win 24559, options [nop,nop,TS val 17390195 ecr 4276499227], length 16
-09:10:03.399029 eth0  Out IP ip-6-19-156-8.eu-central-1.compute.internal.5000 > ip-6-19-0-167.eu-central-1.compute.internal.36014: Flags [.], ack 82, win 455, options [nop,nop,TS val 4276499301 ecr 17390194], length 0
-5 packets captured
-27 packets received by filter
-0 packets dropped by kernel
+# Monitor TCP connections
+./1-active-connections.sh  
+# Output: Active TCP connections with processes
 
-----------------------------------------------------------------------------------------
+# Setup secure firewall
+./2-incoming_connections.sh
+# Result: UFW configured with HTTP access only
 
-7. So fast, it'll make your router sweat!
-Write a bash script that scan a subnetwork to discover live host using scan.
-You should run your code as privileged user root or sudoers.
-Your script should accept a subnetwork as an arguments $1.
-Depending on the scanned subnetwork, the output could change.
+# Audit security table rules
+./3-firewall_rules.sh
+# Output: iptables security rules
 
-┌──(maroua㉿HBTN-LAB)-[~/Linux Security Basics]
-└─🏴 ./7-scan.sh www.holbertonschool.com
-[sudo] password for maroua:
-[sudo] password for maroua: 
-Starting Nmap 7.94 ( https://nmap.org ) at 2023-10-19 15:46 UTC
-Nmap scan report for www.holbertonschool.com (34.249.200.254)
-Host is up (0.026s latency).
-Other addresses for www.holbertonschool.com (not scanned): 52.17.119.105 63.35.51.142
-rDNS record for 34.249.200.254: ec2-34-249-200-254.eu-west-1.compute.amazonaws.com
-Not shown: 998 filtered tcp ports (no-response)
-PORT    STATE SERVICE
-80/tcp  open  http
-443/tcp open  https
+# List listening services
+./4-network_services.sh
+# Output: Active network services and ports
 
+# Run security audit
+./5-audit_system.sh
+# Output: Comprehensive security assessment
 
-Nmap done: 1 IP address (1 host up) scanned in 4.23 seconds
+# Capture 5 network packets
+./6-capture_analyze.sh
+# Output: Packet details and analysis
 
+# Scan local host
+./7-scan.sh localhost
+# Output: Open ports and services
+```
 
+## 📚 Prerequisites
+
+- Linux environment (Ubuntu/Debian/Kali recommended)
+- Sudo privileges for system-level operations
+- Basic understanding of:
+  - Linux command line
+  - Network protocols (TCP/UDP)
+  - Firewall concepts
+  - Security principles
+
+## 🔗 Additional Resources
+
+- [UFW Documentation](https://help.ubuntu.com/community/UFW)
+- [iptables Tutorial](https://www.netfilter.org/documentation/)
+- [Lynis Security Auditing](https://cisofy.com/lynis/)
+- [tcpdump Manual](https://www.tcpdump.org/manpages/tcpdump.1.html)
+- [Nmap Reference Guide](https://nmap.org/book/)
+- [Linux Security Best Practices](https://linux-audit.com/)
+
+## 👥 Author
+
+**Holberton School Cybersecurity Program**  
+*Advanced Linux Security and System Administration* 🛡️
+
+---
+
+**⚠️ Disclaimer**: These tools are for educational and authorized security testing purposes only. Always obtain proper authorization before conducting security assessments on systems you do not own. Respect legal boundaries and ethical guidelines in cybersecurity practice.

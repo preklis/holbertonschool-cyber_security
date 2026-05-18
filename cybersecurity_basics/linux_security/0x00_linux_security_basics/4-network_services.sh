@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo netstat -tulnp
+sudo netstat -tunlp  # List services, their current state, and their corresponding ports

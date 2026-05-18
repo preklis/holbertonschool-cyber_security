@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo semanage user -l
+semanage user -l

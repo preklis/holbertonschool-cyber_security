@@ -1,307 +1,451 @@
-0. Who can add a new user in Linux!
+# 0x01. Permissions, SUID & SGID
 
-Write a bash script that generates a new user and sets a password for that specific user.
+## Description
 
-Your script should accept a username as an arguments $1.
-Your script should accept a password as an arguments $2.
-File lines length = 3
-Not allowed to use printf
-Depending on your machine, the output could change.
+Ce projet explore en profondeur le système de permissions Linux, avec un focus particulier sur les permissions spéciales (SUID, SGID et Sticky Bit). À travers une série de scripts Bash, vous apprendrez à gérer les utilisateurs, les groupes, et à manipuler les permissions pour sécuriser et auditer un système Linux.
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./0-add_user.sh holberton H@ck$@f3Gu@rD!
-[sudo] password for maroua:
-New password: Retype new password: passwd: password updated successfully
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 tail -1 /etc/passwd
-holberton:x:1005:1005::/home/holberton:/bin/sh
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo tail -1 /etc/shadow
-[sudo] password for maroua:
-holberton:$y$j9T$hX9xRbjAKGGXawAjjRbay.$byRISNEKNJeoUr5s8K4.QNDU5HgV2oocPJ6qYyBbHm0:19669:0:99999:7:::
+Les permissions spéciales constituent une couche de contrôle avancée au-delà des permissions de base (lecture, écriture, exécution). Elles permettent une gestion granulaire des privilèges et sont essentielles pour la sécurité des systèmes multi-utilisateurs.
 
-------------------------------------------------------------------------------------------------
+## Concepts Clés
 
-1. Can we trust Groups ?
+### Permissions Spéciales Linux
 
-Write a bash script that generates a new group, changes the ownership of the file to the new group and sets permissions for it.
+#### SUID (Set User ID) - Bit 4000
+- Appliqué à un fichier exécutable
+- Permet l'exécution avec les privilèges du **propriétaire** du fichier
+- Représentation : `s` dans les permissions utilisateur (ex: `-rwsr-xr-x`)
+- Cas d'usage : `/usr/bin/passwd` qui doit modifier `/etc/shadow` (fichier root)
+- **Risque de sécurité** : Élévation de privilèges si le programme est vulnérable
 
-Your script should accept a group as an arguments $1.
-Your script should accept the file as an arguments $2.
-You should grant read and execute permissions to the newgroup on the file
-File lines length = 4
-Not allowed to use printf and echo
-Depending on your machine, the output could change.
+#### SGID (Set Group ID) - Bit 2000
+- **Sur un fichier** : Exécution avec les privilèges du **groupe** propriétaire
+- **Sur un répertoire** : Les nouveaux fichiers héritent du groupe du répertoire parent
+- Représentation : `s` dans les permissions groupe (ex: `-rwxr-sr-x`)
+- Cas d'usage : Répertoires collaboratifs où tous les fichiers doivent appartenir au même groupe
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./1-add_group.sh security example.txt
-[sudo] password for maroua:
-Adding group `security' (GID 1011) ...
-Done.
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴cat /etc/group | grep "security"
-security:x:1011:
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 ls -l example.txt
--rw-rwxr-- 1 maroua security 0 Nov  8 12:03 example.txt
+#### Sticky Bit - Bit 1000
+- S'applique uniquement aux **répertoires**
+- Restreint la suppression : seul le propriétaire peut supprimer ses fichiers
+- Représentation : `t` dans les permissions autres (ex: `drwxrwxrwt`)
+- Cas d'usage : `/tmp` où plusieurs utilisateurs créent des fichiers temporaires
 
-------------------------------------------------------------------------------------------------
+### Commandes Essentielles
 
-2. Let's Add some fun !
+| Commande | Fonction | Exemple |
+|----------|----------|---------|
+| `chmod` | Modifier les permissions | `chmod u+s fichier`, `chmod 4755 fichier` |
+| `chown` | Changer le propriétaire | `chown user3 fichier` |
+| `chgrp` | Changer le groupe | `chgrp admin fichier` |
+| `find` | Rechercher des fichiers | `find / -perm -4000` |
+| `adduser` | Créer un utilisateur (interactif) | `adduser alice` |
+| `useradd` | Créer un utilisateur (système) | `useradd -m alice` |
+| `addgroup` | Créer un groupe | `addgroup developers` |
 
-Write a bash script that allows the user to execute the script without entering a password.
+### Notation des Permissions
 
-Your script should accept the user as an arguments $1.
-File lines length = 2
-Depending on your machine, the output could change.
+#### Symbolique
+```bash
+chmod u+s fichier    # Ajouter SUID
+chmod g+s répertoire # Ajouter SGID
+chmod o+t répertoire # Ajouter Sticky Bit
+chmod o-wx fichier   # Retirer write et execute pour others
+```
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./2-sudo_nopass.sh maroua
-[sudo] password for maroua:
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo cat /etc/sudoers
+#### Octale (4 chiffres)
+```
+[Spécial][User][Group][Others]
+   4000   + 755  = 4755  (SUID + rwxr-xr-x)
+   2000   + 770  = 2770  (SGID + rwxrwx---)
+   1000   + 777  = 1777  (Sticky + rwxrwxrwx)
+```
 
- This file MUST be edited with the 'visudo' command as root.
+## Ressources
 
- Please consider adding local content in /etc/sudoers.d/ instead of
- directly modifying this file.
+- [Permissions Linux - Guide complet](./ressources.md)
+- [chmod man page](https://man7.org/linux/man-pages/man1/chmod.1.html)
+- [find man page](https://man7.org/linux/man-pages/man1/find.1.html)
+- [Understanding SUID, SGID and Sticky Bit](https://www.redhat.com/sysadmin/suid-sgid-sticky-bit)
 
- See the man page for details on how to write a sudoers file.
+## Objectifs d'Apprentissage
 
-Defaults        envreset
-Defaults        mailbadpass
-Defaults        securepath="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
-Defaults        usepty
- This preserves proxy settings from user environments of root
- equivalent users (group sudo)
- Defaults:%sudo envkeep += "httpproxy httpsproxy ftpproxy allproxy noproxy"
- This allows running arbitrary commands, but so does ALL, and it means
- different sudoers have their choice of editor respected.
- Defaults:%sudo envkeep += "EDITOR"
- Completely harmless preservation of a user preference.
- Defaults:%sudo envkeep += "GREPCOLOR"
- While you shouldn't normally run git as root, you need to with etckeeper
- Defaults:%sudo envkeep += "GITAUTHOR* GITCOMMITTER*"
- Per-user preferences; root won't have sensible values for them.
- Defaults:%sudo envkeep += "EMAIL DEBEMAIL DEBFULLNAME"
- "sudo scp" or "sudo rsync" should be able to use your SSH agent.
- Defaults:%sudo envkeep += "SSHAGENTPID SSHAUTHSOCK"
- Ditto for GPG agent
- Defaults:%sudo envkeep += "GPGAGENT_INFO"
- Host alias specification
- User alias specification
- Cmnd alias specification
- User privilege specification
-root    ALL=(ALL:ALL) ALL
- Members of the admin group may gain root privileges
-%admin ALL=(ALL) ALL
- Allow members of group sudo to execute any command
-%sudo   ALL=(ALL:ALL) ALL
- See sudoers(5) for more information on "@include" directives:
-@includedir /etc/sudoers.d
-maroua ALL=(ALL) NOPASSWD: ALL
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo cat /etc/passwd
-root:x:0:0:root:/root:/bin/bash
-daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
-bin:x:2:2:bin:/bin:/usr/sbin/nologin
-sys:x:3:3:sys:/dev:/usr/sbin/nologin
-....
-kali:x:1004:1004::/home/kali:/bin/sh
-holberton:x:1005:1005::/home/holberton:/bin/sh
+À la fin de ce projet, vous serez capable de :
 
-------------------------------------------------------------------------------------------------
+- Comprendre et expliquer le système de permissions Linux (rwx)
+- Identifier et manipuler les permissions spéciales (SUID, SGID, Sticky Bit)
+- Utiliser `find` avec des options avancées pour auditer la sécurité
+- Gérer les utilisateurs et groupes Linux
+- Configurer `sudo` et comprendre les risques de sécurité
+- Automatiser la gestion des permissions avec des scripts Bash
+- Identifier les vulnérabilités liées aux permissions mal configurées
 
-3. SUID hunting, Known Exploits!
+## Prérequis
 
-Write a bash script that searches for SUID vulnerabilities in a specified directory.
+- Système Linux (Ubuntu/Debian recommandé)
+- Accès root/sudo
+- Connaissances de base en Bash
+- Compréhension des concepts de base Linux
 
-Your script should accept the target directory as an arguments $1.
-File lines length = 2
-NB: You should discard and not displayed on the terminal any error output.
+## Exigences
 
-Depending on your machine, the output could change.
+- Tous les scripts doivent commencer par `#!/bin/bash`
+- Tous les scripts doivent être exécutables
+- La longueur des fichiers doit être de **2 lignes maximum**
+- Utiliser les redirections d'erreurs quand nécessaire (`2>/dev/null`)
+- Suivre les bonnes pratiques de sécurité
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./3-find_files.sh /usr/bin
-[sudo] password for maroua:
+## Structure du Projet
+
+```
+0x01_permissions_sguid_sgid/
+├── README.md
+├── ressources.md
+├── 0-add_user.sh
+├── 1-add_group.sh
+├── 2-sudo_nopass.sh
+├── 3-find_files.sh
+├── 4-find_suid.sh
+├── 5-find_sgid.sh
+├── 6-check_files.sh
+├── 7-file_read.sh
+├── 8-change_user.sh
+└── 9-empty_file.sh
+```
+
+## Tâches
+
+### 0. Create a new user
+**Fichier :** `0-add_user.sh`
+
+Crée un nouveau compte utilisateur.
+- Accepte le nom d'utilisateur en argument `$1`
+- Utilise `useradd` ou `adduser`
+
+```bash
+sudo ./0-add_user.sh alice
+```
+
+---
+
+### 1. Create a new group and add user
+**Fichier :** `1-add_group.sh`
+
+Crée un nouveau groupe et y ajoute un utilisateur.
+- Accepte le nom du groupe en argument `$1`
+- Accepte le nom d'utilisateur en argument `$2`
+
+```bash
+sudo ./1-add_group.sh developers alice
+```
+
+---
+
+### 2. Grant sudo privileges without password
+**Fichier :** `2-sudo_nopass.sh`
+
+Configure les permissions sudo sans mot de passe pour un utilisateur.
+- Accepte le nom d'utilisateur en argument `$1`
+- Modifie `/etc/sudoers` pour ajouter `NOPASSWD`
+
+```bash
+sudo ./2-sudo_nopass.sh alice
+```
+
+**⚠️ Attention :** Utiliser `visudo` en production pour éviter les erreurs de syntaxe.
+
+---
+
+### 3. Find files with SUID vulnerabilities
+**Fichier :** `3-find_files.sh`
+
+Recherche les fichiers avec SUID dans un répertoire spécifié.
+- Accepte le répertoire cible en argument `$1`
+- Affiche les détails des fichiers (format `ls -l`)
+- Supprime les erreurs de l'affichage
+
+```bash
+sudo ./3-find_files.sh /usr/bin
+```
+
+**Sortie attendue :**
+```
 -rwsr-xr-x 1 root root 76096 Aug 20 20:14 /usr/bin/su
--rwxr-sr-x 1 root shadow 31184 Mar 23  2023 /usr/bin/expiry
--rwxr-sr-x 1 root plocate 322960 Jul  4 16:24 /usr/bin/plocate
--rwsr-xr-x 1 root root 35128 Aug 20 20:14 /usr/bin/umount
--rwsr-xr-x 1 root root 30872 Aug  8 15:16 /usr/bin/pkexec
--rwsr-xr-x 1 root root 35128 Apr 18  2023 /usr/bin/fusermount3
--rwxr-sr-x 1 root ssh 493952 Sep  2 20:02 /usr/bin/ssh-agent
--rwsr-xr-x 1 root root 88496 Mar 23  2023 /usr/bin/gpasswd
--rwsr-xr-x 1 root root 281912 Jul 19 22:31 /usr/bin/sudo
 -rwsr-xr-x 1 root root 68248 Mar 23  2023 /usr/bin/passwd
--rwxr-sr-x 1 root shadow 80376 Mar 23  2023 /usr/bin/chage
--rwsr-xr-x 1 root root 63800 Aug 20 20:14 /usr/bin/mount
--rwsr-xr-x 1 root root 48896 Mar 23  2023 /usr/bin/newgrp
--rwsr-xr-x 1 root root 62672 Mar 23  2023 /usr/bin/chfn
--rwsr-xr-x 1 root root 52880 Mar 23  2023 /usr/bin/chsh
--rwxr-sr-x 1 root crontab 43648 Sep  3 10:30 /usr/bin/crontab
--rwxr-sr-x 1 root tty 39224 Aug 20 20:14 /usr/bin/wall
--rwsr-xr-x 1 root root 162752 Mar 23  2023 /usr/bin/ntfs-3g
--rwxr-sr-x 1 root tty 22848 Aug 20 20:14 /usr/bin/write
--rwxr-sr-x 1 root mail 23040 Feb  4  2021 /usr/bin/dotlockfile
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 wc -l 3-findfiles.sh
-2 3-find_files.sh
+...
+```
 
-------------------------------------------------------------------------------------------------
+**Concepts utilisés :**
+- `find` avec `-perm -4000`
+- `-exec ls -l {} \;`
+- Redirection des erreurs `2>/dev/null`
 
-4. Handle the SUID bit like a hot potato fun, but use it wisely!
+---
 
-Write a bash script that lists all files with SUID set in a given directory
+### 4. List files with SUID
+**Fichier :** `4-find_suid.sh`
 
-Your script should accept the directory as an arguments $1.
-File lines length = 2
-Depending on your machine, the output could change.
+Liste tous les fichiers avec SUID dans un répertoire.
+- Accepte le répertoire en argument `$1`
+- Affiche uniquement les chemins (pas les détails)
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./4-find_suid.sh Security
-[sudo] password for maroua:
+```bash
+sudo ./4-find_suid.sh Security
+```
+
+**Sortie attendue :**
+```
 Security/holberton.sh
 Security/flag.txt
-Security/cybersecurity.txt
-Security/100-flag.txt
-Repo:
+```
 
-GitHub repository: holbertonschool-cyber_security
-Directory: linux_security/0x01_permissions_sguid_sgid
-File: 4-find_suid.sh
-  
-18/18 pts
-5. Group hug your files with Setgid!
-mandatory
-Score: 100.00% (Checks completed: 100.00%)
-Write a bash script that lists all files with SGID set in a given directory
+**Différence avec la tâche 3 :**
+- Tâche 3 : affichage détaillé (`ls -l`)
+- Tâche 4 : affichage simple (chemins uniquement)
 
-Your script should accept the directory as an arguments $1.
-File lines length = 2
-Depending on your machine, the output could change.
+---
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./5-find_sgid.sh Security
-[sudo] password for maroua:
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo chmod g+s Security/*
-[sudo] password for maroua:
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./5-find_sgid.sh Security
-[sudo] password for maroua:
-Security/cybersecurity.txt
-Security/flag.txt
-Security/holberton.sh
-Security/100-flag.txt
+### 5. List files with SGID
+**Fichier :** `5-find_sgid.sh`
 
-------------------------------------------------------------------------------------------------
+Liste tous les fichiers avec SGID dans un répertoire.
+- Accepte le répertoire en argument `$1`
+- Similaire à la tâche 4, mais pour SGID (bit 2000)
 
-6. Finding files with setuid or setgid!
+```bash
+sudo ./5-find_sgid.sh Security
+```
 
-Write a bash script that Finds all files modified in the last 24 hours with SUID or SGID set and lists detailed information about those files .
+---
 
-Your script should accept the directory as an arguments $1.
-You should use -mtime option.
-File lines length = 2
-Depending on your machine, the output could change.
+### 6. Check files modified in last 24h with SUID/SGID
+**Fichier :** `6-check_files.sh`
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴sudo ./6-check_files.sh Security
-[sudo] password for maroua:
+Trouve les fichiers modifiés dans les dernières 24h avec SUID ou SGID.
+- Accepte le répertoire en argument `$1`
+- Utilise `-mtime -1` pour filtrer par date
+- Affiche les détails des fichiers
+
+```bash
+sudo ./6-check_files.sh Security
+```
+
+**Sortie attendue :**
+```
 ---S------ 1 maroua maroua 0 Jan  3 11:26 Security/100-flag.txt
----S------ 1 maroua maroua 0 Jan  3 11:26 Security/addgroup.sh
----S------ 1 maroua maroua 0 Jan  3 11:26 Security/sudofile.sh
----S------ 1 maroua maroua 0 Jan  3 11:26 Security/4-tcpsynping.sh
----S------ 1 maroua maroua 0 Jan  3 11:26 Security/5-tcpackping.sh
+```
 
-------------------------------------------------------------------------------------------------
+**Concepts utilisés :**
+- Combinaison de filtres : `-perm /6000` (SUID OU SGID)
+- Filtrage temporel : `-mtime -1`
+- Groupement avec parenthèses : `\( -perm /4000 -o -perm /2000 \)`
 
-7. Others can read the files, but no writing privileges allowed—because files deserve their secrets too!
+---
 
-Write a bash script that Changes permissions of all files in a directory to read-only for others without changing owner/group permissions.
+### 7. Set read-only permissions for others
+**Fichier :** `7-file_read.sh`
 
-Your script should accept the directory as an arguments $1.
-File lines length = 2
-Depending on your machine, the output could change.
+Change les permissions de tous les fichiers d'un répertoire en lecture seule pour "others".
+- Accepte le répertoire en argument `$1`
+- Ne modifie pas les permissions du propriétaire/groupe
+- Résultat : others ont uniquement `r--`
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 ls -l Security/
-total 6
--rwxrwxr-x 1 maroua maroua  33 Dec 19 11:00 0-arpscan.sh
--rw-rw-r-x 1 maroua maroua  33 Dec 19 11:00 101-flag.txt
--rwxrwxr-x 1 maroua maroua  33 Dec 19 11:00 1-icmpechoscan.sh
--rwxrwxr-x 1 maroua maroua  33 Dec 19 11:00 2-icmptimestampscan.sh
--rwxrwxr-x 1 maroua maroua  33 Dec 19 11:00 3-icmpaddressmaskscan.sh
--rwxrw-r-x 1 maroua maroua  43 Dec 19 11:00 6-udppingscan.sh
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴sudo ./7-file_read.sh Security/
-[sudo] password for maroua:
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 ls -l Security/
-total 6
--rwxrwxr-- 1 maroua maroua  33 Dec 19 11:00 0-arpscan.sh
--rw-rw-r-- 1 maroua maroua  33 Dec 19 11:00 101-flag.txt
--rwxrwxr-- 1 maroua maroua  33 Dec 19 11:00 1-icmpechoscan.sh
--rwxrwxr-- 1 maroua maroua  33 Dec 19 11:00 2-icmptimestampscan.sh
--rwxrwxr-- 1 maroua maroua  33 Dec 19 11:00 3-icmpaddressmaskscan.sh
--rwxrw-r-- 1 maroua maroua  43 Dec 19 11:00 6-udppingscan.sh
+```bash
+sudo ./7-file_read.sh Security/
+```
 
-------------------------------------------------------------------------------------------------
+**Avant :**
+```
+-rwxrwxr-x 1 maroua maroua 33 Dec 19 11:00 0-arpscan.sh
+```
 
-8. Changing file owners, one friendship at a time!
+**Après :**
+```
+-rwxrwxr-- 1 maroua maroua 33 Dec 19 11:00 0-arpscan.sh
+```
 
-Write a bash script that Changes permissions that changes the owner of files in a directory to user3, but only if the current owner is user2
+**Solution :** `chmod o-wx` (retire write et execute pour others)
 
-Your script should accept the directory as an arguments $1.
-File lines length = 2
-Depending on your machine, the output could change.
+---
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 ls -l Security/
-total 6
--rwxrwxr-- 1 user2 maroua  33 Dec 19 11:00 0-arpscan.sh
--rw-rw-r-- 1 user2 maroua  33 Dec 19 11:00 101-flag.txt
--rwxrwxr-- 1 user2 maroua  33 Dec 19 11:00 1-icmpechoscan.sh
--rwxrwxr-- 1 user2 maroua  33 Dec 19 11:00 2-icmptimestampscan.sh
--rwxrwxr-- 1 user2 maroua  33 Dec 19 11:00 3-icmpaddressmaskscan.sh
--rwxrw-r-- 1 user2 maroua  43 Dec 19 11:00 6-udppingscan.sh
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 sudo ./8-change_user.sh Security/
-[sudo] password for maroua:
-total 6
--rwxrwxr-- 1 user3 maroua  33 Dec 19 11:00 0-arpscan.sh
--rw-rw-r-- 1 user3 maroua  33 Dec 19 11:00 101-flag.txt
--rwxrwxr-- 1 user3 maroua  33 Dec 19 11:00 1-icmpechoscan.sh
--rwxrwxr-- 1 user3 maroua  33 Dec 19 11:00 2-icmptimestampscan.sh
--rwxrwxr-- 1 user3 maroua  33 Dec 19 11:00 3-icmpaddressmaskscan.sh
--rwxrw-r-- 1 user3 maroua  43 Dec 19 11:00 6-udppingscan.sh
+### 8. Change owner conditionally
+**Fichier :** `8-change_user.sh`
 
-------------------------------------------------------------------------------------------------
+Change le propriétaire de `user2` vers `user3`, uniquement pour les fichiers appartenant à `user2`.
+- Accepte le répertoire en argument `$1`
+- Utilise `find -user` pour filtrer par propriétaire
 
-9. Empty files got a promotion – now they're living large with full permissions!
+```bash
+sudo ./8-change_user.sh Security/
+```
 
-Write a bash script that finds all empty files in a directory and adds full permissions for everyone to these files.
+**Avant :**
+```
+-rwxrwxr-- 1 user2 maroua 33 Dec 19 11:00 0-arpscan.sh
+```
 
-Your script should accept the directory as an arguments $1.
-File lines length = 2
-Depending on your machine, the output could change.
+**Après :**
+```
+-rwxrwxr-- 1 user3 maroua 33 Dec 19 11:00 0-arpscan.sh
+```
 
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 find Security/ -size 0 -exec ls -l {} \;
-total 4
--rw-r--r-- 1 maroua maroua 0 Dec 20 09:40 ./cybersecurity.txt
--rw-r--r-- 1 maroua maroua 0 Jan  3 14:16 Security/flag.txt
--rw-r--r-- 1 maroua maroua 0 Jan  3 14:16 Security/example.txt
--rw-r--r-- 1 maroua maroua 0 Jan  3 14:16 Security/cybersecurity.txt
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴sudo ./9-empty_file.sh Security/
-[sudo] password for maroua:
-┌──(maroua㉿HBTN-LAB)-[~/Permissions, SUID & SGID]
-└─🏴 find Security/ -size 0 -exec ls -l {} \;
-total 4
+**Concepts utilisés :**
+- `find -user user2` : filtrer par propriétaire
+- `chown user3` : changer le propriétaire
+
+---
+
+### 9. Full permissions for empty files
+**Fichier :** `9-empty_file.sh`
+
+Trouve tous les fichiers vides et leur donne des permissions complètes (777).
+- Accepte le répertoire en argument `$1`
+- Utilise `-empty` pour trouver les fichiers vides
+
+```bash
+sudo ./9-empty_file.sh Security/
+```
+
+**Avant :**
+```
+-rw-r--r-- 1 maroua maroua 0 Dec 20 09:40 cybersecurity.txt
+```
+
+**Après :**
+```
 -rwxrwxrwx 1 maroua maroua 0 Jan  3 14:16 cybersecurity.txt
--rwxrwxrwx 1 maroua maroua 0 Jan  3 14:16 example.txt
--rwxrwxrwx 1 maroua maroua 0 Jan  3 14:16 flag.txt
--rwxrwxrwx 1 maroua maroua 0 Jan  3 14:16 holberton.sh
+```
+
+**Note :** `-empty` est plus explicite et portable que `-size 0`
+
+---
+
+## Techniques Avancées de `find`
+
+### Opérateurs de Permissions
+
+```bash
+# Exactement ces permissions
+find . -perm 755
+
+# Au moins ces bits sont activés
+find . -perm -755
+
+# N'importe lequel de ces bits est activé
+find . -perm /755
+```
+
+### Combinaison de Conditions
+
+```bash
+# ET logique (par défaut)
+find . -type f -size +1M
+
+# OU logique avec -o
+find . -name "*.txt" -o -name "*.sh"
+
+# Groupement avec parenthèses
+find . \( -name "*.txt" -o -name "*.sh" \) -mtime -1
+```
+
+### Options d'Exécution
+
+```bash
+# Exécuter une commande par fichier
+find . -type f -exec chmod 644 {} \;
+
+# Exécuter avec plusieurs fichiers à la fois (plus rapide)
+find . -type f -exec chmod 644 {} +
+
+# Affichage détaillé intégré
+find . -type f -ls
+```
+
+## Considérations de Sécurité
+
+### Risques des Permissions Spéciales
+
+1. **SUID sur des fichiers non sécurisés**
+   - Peut permettre une escalade de privilèges
+   - Auditer régulièrement avec `find / -perm -4000`
+
+2. **SGID mal configuré**
+   - Partage involontaire de fichiers sensibles
+   - Vérifier les répertoires avec `find / -perm -2000`
+
+3. **Sudo sans mot de passe**
+   - Compromission complète du système si le compte est piraté
+   - Utiliser uniquement pour des tâches spécifiques
+
+### Bonnes Pratiques
+
+- Utiliser `visudo` pour modifier `/etc/sudoers`
+- Limiter les permissions SUID/SGID au strict nécessaire
+- Auditer régulièrement les fichiers avec permissions spéciales
+- Ne jamais donner 777 sur des fichiers sensibles
+- Documenter toutes les modifications de permissions
+
+## Exemples Pratiques
+
+### Audit de Sécurité Complet
+
+```bash
+# Trouver tous les fichiers SUID/SGID
+find / -type f \( -perm -4000 -o -perm -2000 \) -exec ls -ldb {} \; 2>/dev/null
+
+# Trouver les fichiers world-writable
+find / -type f -perm -002 -exec ls -l {} \; 2>/dev/null
+
+# Trouver les fichiers sans propriétaire
+find / -nouser -o -nogroup 2>/dev/null
+```
+
+### Gestion de Projet Collaboratif
+
+```bash
+# Créer un répertoire de projet avec SGID
+mkdir /projet
+chgrp developers /projet
+chmod 2775 /projet
+
+# Maintenant tous les fichiers créés appartiendront au groupe developers
+```
+
+### Nettoyage de Fichiers Temporaires
+
+```bash
+# Trouver et supprimer les fichiers vides de plus de 30 jours
+find /tmp -type f -empty -mtime +30 -delete
+
+# Trouver les fichiers temporaires volumineux
+find /tmp -type f -size +100M -mtime +7 -exec ls -lh {} \;
+```
+
+## Débogage
+
+### Problèmes Courants
+
+**Le script ne trouve rien :**
+- Vérifiez que vous utilisez `sudo` si nécessaire
+- Testez sans `2>/dev/null` pour voir les erreurs
+- Vérifiez que les fichiers existent avec les permissions attendues
+
+**Permission denied :**
+- Assurez-vous d'exécuter avec `sudo` pour les opérations système
+- Vérifiez que le script est exécutable : `chmod +x script.sh`
+
+**Syntaxe find incorrecte :**
+- Échappez les parenthèses : `\(` et `\)`
+- Terminez `-exec` avec `\;` ou `+`
+- Placez `2>/dev/null` à la fin de la commande complète
+
+## Auteur
+
+Projet réalisé dans le cadre de la formation **Holberton School - Cyber Security**
+
+## Repository
+
+- **GitHub repository:** `holbertonschool-cyber_security`
+- **Directory:** `linux_security/0x01_permissions_sguid_sgid`
+
+---
+
+**Note :** Ce projet est à but éducatif. Les techniques apprises doivent être utilisées de manière responsable et éthique, uniquement sur des systèmes dont vous avez l'autorisation.
